@@ -532,47 +532,24 @@ function create_colours(type, base_colours)
     return {(type(base_colours) == 'table' and HEX(base_colours[1]) or HEX(base_colours))}
 end 
 
--- Called from option selectors that control each type
+-- Called from option selectors that control each set
 G.FUNCS.select_texture = function(args)
-    G.SETTINGS.selected_texture[args.cycle_config.type] = args.to_val
+    G.SETTINGS.selected_texture[args.cycle_config.set] = args.cycle_config.index_to_alt_texture[args.to_key].key
 	G:save_settings()
-	G.FUNCS.update_atlases(args.cycle_config.type)
+	G.FUNCS.update_atlases(args.cycle_config.set, args.cycle_config.index_to_alt_texture[args.to_key])
 end
 
--- Set the atlases of all cards of the correct type to be the new texture
-G.FUNCS.update_atlases = function(type)
-    local name = G.SETTINGS.selected_texture[type]
-	if not SMODS.AltTextures[type][name] then return end
+-- Set the atlases of all cards of the correct set to be the new texture
+G.FUNCS.update_atlases = function(set, texture)
 	local atlas_keys = {}
-	if type == "Suit" then
+	if set == "Suit" then
 		atlas_keys = {"cards_1", "ui_1"}
 		for suit, _ in pairs(G.C["SO_1"]) do
-			local colour = (SMODS.AltTextures.Suit[name].suits and SMODS.AltTextures.Suit[name].suits[suit] or SMODS.AltTextures.Suit["Default"].suits[suit] or nil)
+			local colour = (texture.suits[suit] or SMODS.base_suit_colours[suit] or nil)
 			G.C["SO_1"][suit] =  (colour and HEX(colour) or G.C["SO_1"][suit])
 			G.C.SUITS[suit] = G.C["SO_1"][suit]
 		end		
-    elseif type == "Seal" then
-        atlas_keys = {"centers"}
-    elseif type == "Tag" then
-        atlas_keys = {"tags"}
-    elseif type == "Blind" then
-        if G.ASSET_ATLAS[type][name] then
-            G.ANIMATION_ATLAS["blind_chips"].image = G.ASSET_ATLAS[type][name].image
-        end
-        return
-	else
-		for _, card in pairs(G.P_CENTER_POOLS[type]) do
-			atlas_keys[card.atlas or type] = card.atlas or type
-		end
-        if type == "Spectral" then
-            atlas_keys["soul"] = "soul"
-        end
-	end
-	for _, atlas_key in pairs(atlas_keys) do
-		if G.ASSET_ATLAS[atlas_key][name] then
-			G.ASSET_ATLAS[atlas_key].image = G.ASSET_ATLAS[atlas_key][name].image
-		end
-	end
+    end
 end
 
 -- Convert a hex code into HSL values
