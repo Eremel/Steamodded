@@ -2431,15 +2431,29 @@ function loadAPIs()
 
     -- AltTextures are separated into subtables based on their set
     SMODS.AltTextures = {}
+    -- For UI option selectors
+    SMODS.AltTextureNames = {}
     SMODS.AltTexture = SMODS.GameObject:extend {
         texture_set_buffer = {"Suit", "Tarot", "Planet", "Spectral", "Joker", "Enhanced", "Back", "Seal", "Voucher", "Booster", "Tag", "Blind"},
         required_params = {
             'key',
             'texture_set',
-            'name'
+            'name' -- TODO probably wants to be localizable
         },
         set = 'AltTexture',
         prefix = 'tex',
+        inject_texture_set = function(self, texture_set)
+            table.insert(self.texture_set_buffer, texture_set)
+            SMODS.AltTextures[texture_set] = {}
+            SMODS.AltTextureNames[texture_set] = {'Default'}
+        end,
+        inject_class = function(self)
+            -- Inject initial elements in texture_set_buffer
+            for _, v in ipairs(self.texture_set_buffer) do
+                self:inject_texture_set(v)
+            end
+            SMODS.AltTexture.super.inject_class(self)
+        end,
         inject = function(self)
             -- TODO deleted function that truncated names that were too long.
             -- Better solution is to ensure the text shrinks to fit.
@@ -2448,8 +2462,10 @@ function loadAPIs()
             if not SMODS.AltTextures[self.texture_set] then
                 table.insert(SMODS.AltTextures.texture_set_buffer, self.texture_set)
                 SMODS.AltTextures[self.texture_set] = {}
+                SMODS.AltTextureNames[self.texture_set] = {'Default'}
             end
             table.insert(SMODS.AltTextures[self.texture_set], self)
+            table.insert(SMODS.AltTextureNames[self.texture_set], self.name)
 
             -- Initialize the new texture
             -- TODO make these just one function
@@ -2458,11 +2474,8 @@ function loadAPIs()
             elseif self.texture then 
                 atlas_to_texture(self)
             end
-        end
+        end,
     }
-    for _, v in ipairs(SMODS.AltTexture.texture_set_buffer) do
-        SMODS.AltTextures[v] = {}
-    end
 
     -- Default palettes defined for base game suits
     SMODS.AltTexture({
