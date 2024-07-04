@@ -2431,8 +2431,9 @@ function loadAPIs()
 
     -- AltTextures are separated into subtables based on their set
     SMODS.AltTextures = {}
-    -- For UI option selectors
-    SMODS.AltTextureNames = {}
+    -- UI option selectors for each set.
+    -- The whole table can be used as an argument to create_option_cycle().
+    SMODS.AltTextureSelectors = {}
     SMODS.AltTexture = SMODS.GameObject:extend {
         texture_set_buffer = {"Suit", "Tarot", "Planet", "Spectral", "Joker", "Enhanced", "Back", "Seal", "Voucher", "Booster", "Tag", "Blind"},
         required_params = {
@@ -2445,7 +2446,15 @@ function loadAPIs()
         inject_texture_set = function(self, texture_set)
             table.insert(self.texture_set_buffer, texture_set)
             SMODS.AltTextures[texture_set] = {}
-            SMODS.AltTextureNames[texture_set] = {'Default'}
+            SMODS.AltTextureSelectors[texture_set] = {
+                colour = G.C.BLUE,
+                options = {'Default'},
+                opt_callback = "select_texture",
+                current_option = 1,
+                set = texture_set,
+                -- Map from index to texture
+                index_to_texture = {}
+            }
         end,
         inject_class = function(self)
             -- Inject initial elements in texture_set_buffer
@@ -2460,12 +2469,15 @@ function loadAPIs()
 
             -- Initialize new texture set if needed
             if not SMODS.AltTextures[self.texture_set] then
-                table.insert(SMODS.AltTextures.texture_set_buffer, self.texture_set)
-                SMODS.AltTextures[self.texture_set] = {}
-                SMODS.AltTextureNames[self.texture_set] = {'Default'}
+                self:inject_texture_set(self.texture_set)
             end
             table.insert(SMODS.AltTextures[self.texture_set], self)
-            table.insert(SMODS.AltTextureNames[self.texture_set], self.name)
+            local selector = SMODS.AltTextureSelectors[self.texture_set]
+            table.insert(selector.options, self.name)
+            selector.index_to_texture[#selector.options] = self
+            if G.SETTINGS.selected_texture[self.texture_set] == self.key then
+                selector.current_option = #selector.options
+            end
 
             -- Initialize the new texture
             -- TODO make these just one function
@@ -2478,17 +2490,12 @@ function loadAPIs()
     }
 
     -- Default palettes defined for base game suits
-    SMODS.AltTexture({
-        key = "base_cards",
-        suits = {
-            Clubs = "235955",
-            Spades = "3c4368",
-            Diamonds = "f06b3f",
-            Hearts = "f03464"
-        },
-        type = "Suit",
-        name = "Default",
-    })   
+    SMODS.base_suit_colours = {
+        Clubs = "235955",
+        Spades = "3c4368",
+        Diamonds = "f06b3f",
+        Hearts = "f03464"
+    } 
     SMODS.AltTexture({
         key = "high_contrast_cards",
         atlas_key = "cards_2",
