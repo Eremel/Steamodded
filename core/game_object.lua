@@ -2439,13 +2439,14 @@ function loadAPIs()
             table.insert(self.texture_set_buffer, texture_set)
             SMODS.AltTextures[texture_set] = {}
             SMODS.AltTextureSelectors[texture_set] = {
+                -- TODO re-add some dimension args (w, scale) that were removed
                 colour = G.C.BLUE,
                 options = {'Default'},
                 opt_callback = "select_texture",
                 current_option = 1,
                 set = texture_set,
                 -- Map from index to texture
-                index_to_texture = {}
+                index_to_alt_texture = {}
             }
         end,
         inject_class = function(self)
@@ -2467,7 +2468,7 @@ function loadAPIs()
             table.insert(SMODS.AltTextures[self.texture_set], self)
             local selector = SMODS.AltTextureSelectors[self.texture_set]
             table.insert(selector.options, self.name)
-            selector.index_to_texture[#selector.options] = self
+            selector.index_to_alt_texture[#selector.options] = self
             if G.SETTINGS.selected_texture[self.texture_set] == self.key then
                 selector.current_option = #selector.options
             end
@@ -2488,7 +2489,7 @@ function loadAPIs()
         Spades = "3c4368",
         Diamonds = "f06b3f",
         Hearts = "f03464"
-    } 
+    }
     SMODS.AltTexture({
         key = "high_contrast_cards",
         atlas_key = "cards_2",
@@ -2499,7 +2500,7 @@ function loadAPIs()
             Diamonds = "e29000",
             Hearts = "f83b2f"
         },
-        type = "Suit",
+        set = "Suit",
         name = "High Contrast",
     })
     SMODS.NO_LOG = true
