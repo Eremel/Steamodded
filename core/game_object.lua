@@ -714,15 +714,7 @@ function loadAPIs()
                         no_pips = true
                 })}} or { n = G.UIT.R}), 
                 (SMODS.AltTextures[self.key] and #SMODS.AltTextures[self.key].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = -0.1 },
-                    nodes = {SMODS.GUI.createOptionSelector({
-                        w = 4.5,
-                        scale = 0.8,
-                        colour = G.C.BLUE,
-                        options = SMODS.AltTextures[self.key].names,
-                        opt_callback = "select_texture",
-                        current_option = G.SETTINGS.selected_texture[self.key],
-                        type = self.key,
-                })}} or {n = G.UIT.R}),
+                    nodes = {SMODS.GUI.createOptionSelector(SMODS.AltTextureSelectors[self.key])}} or {n = G.UIT.R}),
                 
             }
         
@@ -2463,6 +2455,7 @@ function loadAPIs()
             end
             SMODS.AltTexture.super.inject_class(self)
         end,
+        -- TODO may accidentally inject twice
         inject = function(self)
             -- TODO deleted function that truncated names that were too long.
             -- Better solution is to ensure the text shrinks to fit.

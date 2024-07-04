@@ -1086,16 +1086,7 @@ function create_UIBox_your_collection_enhancements(exit)
 							no_pips = true
 					})}}), 
 					(SMODS.AltTextures["Enhanced"] and #SMODS.AltTextures["Enhanced"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = 0.1 },
-						nodes = {create_option_cycle({
-							w = 4.5,
-							scale = 0.8,
-							colour = G.C.BLUE,
-							options = SMODS.AltTextures["Enhanced"].names(),
-							opt_callback = "select_texture",
-							current_option = SMODS.AltTextures["Enhanced"].index(G.SETTINGS.selected_texture["Enhanced"]),
-							type = "Enhanced",
-					})}}),
-					
+						nodes = {create_option_cycle(SMODS.AltTextureSelectors["Enhanced"])}}),
 				}
             }
 		}
@@ -1226,16 +1217,7 @@ function dynamic_card_colours(page)
 		local v = SMODS.AltTextures[dynamic_type]
         if true then
             table.insert(dynamic_selectors,
-			create_option_cycle({
-				w = 4,
-				scale = 0.8,
-				label = dynamic_type.." colours",
-				colour = G.C.BLUE,
-				options = v.names or "Default",
-				opt_callback = "select_texture",
-				current_option = G.SETTINGS.selected_texture[dynamic_type] or "Default",
-				type = dynamic_type
-			}))
+			create_option_cycle(SMODS.AltTextureSelectors[dynamic_type]))
 		end
     end
 	return { n = G.UIT.R, config = { r = 0.1, align = "cm", }, nodes = dynamic_selectors }
@@ -1266,16 +1248,7 @@ function G.UIDEF.view_deck(_show_remaining)
 	local selector = { n = G.UIT.R, config = { align = "tr", padding = -0.7, minw = 15},
 		nodes = {
 			(SMODS.AltTextures["Suit"] and #SMODS.AltTextures["Suit"].names > 1 and { n = G.UIT.C,
-				nodes = {create_option_cycle({
-					w = 3,
-					scale = 0.8,
-					text_scale = 0.38,
-					colour = G.C.BLUE,
-					options = SMODS.AltTextures["Suit"].names,
-					opt_callback = "select_texture",
-					current_option = G.SETTINGS.selected_texture["Suit"],
-					type = "Suit",
-			})}} or {n = G.UIT.C}),
+				nodes = {create_option_cycle(SMODS.AltTextureSelectors["Suit"])}} or {n = G.UIT.C}),
 		}
 	}
 	-- t.nodes[3].nodes[2].nodes = {}
@@ -1291,15 +1264,7 @@ function create_UIBox_your_collection_decks()
 	local selector = { n = G.UIT.R, config = { align = "cm", padding = -0.2},
 		nodes = { 
 			(SMODS.AltTextures["Back"] and #SMODS.AltTextures["Back"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = 0.1 },
-				nodes = {create_option_cycle({
-					w = 4.5,
-					scale = 0.8,
-					colour = G.C.BLUE,
-					options = SMODS.AltTextures["Back"].names,
-					opt_callback = "select_texture",
-					current_option = G.SETTINGS.selected_texture["Back"],
-					type = "Back",
-			})}} or {n = G.UIT.R}),
+				nodes = {create_option_cycle(SMODS.AltTextureSelectors["Back"])}} or {n = G.UIT.R}),
 		}
 	}
 	table.insert(t.nodes[1].nodes[1].nodes, 2, selector)
@@ -1330,15 +1295,7 @@ function create_UIBox_your_collection_blinds(exit)
 					no_pips = true
 			})}} or { n = G.UIT.R, config = {minh = 1}}), 
 			(SMODS.AltTextures["Blind"] and #SMODS.AltTextures["Blind"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = 0.1 },
-				nodes = {SMODS.GUI.createOptionSelector({
-					w = 4.5,
-					scale = 0.6,
-					colour = G.C.BLUE,
-					options = SMODS.AltTextures["Blind"].names,
-					opt_callback = "select_texture",
-					current_option = G.SETTINGS.selected_texture["Blind"],
-					type = "Blind",
-			})}} or { n = G.UIT.R }),
+				nodes = {SMODS.GUI.createOptionSelector(SMODS.AltTextureSelectors["Blind"])}} or { n = G.UIT.R }),
 		}
 	}
 	table.insert(t.nodes[1].nodes[1].nodes[1].nodes[1].nodes[2].nodes, selector)		
@@ -1350,15 +1307,7 @@ function create_UIBox_your_collection_jokers()
 	local t = joker_ui()
 	local selector = (SMODS.AltTextures["Joker"] and #SMODS.AltTextures["Joker"].names > 1 and
 	{ n = G.UIT.R, config = { align = "cm", padding = -0.3 },
-		nodes = {create_option_cycle({
-				w = 4.5,
-				scale = 0.8,
-				colour = G.C.BLUE,
-				options = SMODS.AltTextures["Joker"].names,
-				opt_callback = "select_texture",
-				current_option = G.SETTINGS.selected_texture["Joker"],
-				type = "Joker",
-			})
+		nodes = {create_option_cycle(SMODS.AltTextureSelectors["Joker"])
 		}
 	}
 	or {n = G.UIT.R})
@@ -1371,15 +1320,7 @@ function create_UIBox_your_collection_tags()
 	local t = tag_ui()
 	local selector = (SMODS.AltTextures["Tag"] and #SMODS.AltTextures["Tag"].names > 1 and
 	{ n = G.UIT.R, config = { align = "cm", padding = -0.3 },
-		nodes = {create_option_cycle({
-				w = 4.5,
-				scale = 0.7,
-				colour = G.C.BLUE,
-				options = SMODS.AltTextures["Tag"].names,
-				opt_callback = "select_texture",
-				current_option = G.SETTINGS.selected_texture["Tag"],
-				type = "Tag",
-			}), {n = G.UIT.R, config = {minh = 0.5}}
+		nodes = {create_option_cycle(SMODS.AltTextureSelectors["Tag"]), {n = G.UIT.R, config = {minh = 0.5}}
 		}
 	}
 	or {n = G.UIT.R})
@@ -1392,15 +1333,7 @@ function create_UIBox_your_collection_vouchers()
 	local t = voucher_ui()
 	local selector = 
 		(SMODS.AltTextures["Voucher"] and #SMODS.AltTextures["Voucher"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = -0.3 },
-			nodes = {create_option_cycle({
-				w = 4.5,
-				scale = 0.8,
-				colour = G.C.BLUE,
-				options = SMODS.AltTextures["Voucher"].names,
-				opt_callback = "select_texture",
-				current_option = G.SETTINGS.selected_texture["Voucher"],
-				type = "Voucher",
-		})}} or { n = G.UIT.R})
+			nodes = {create_option_cycle(SMODS.AltTextureSelectors["Voucher"])}} or { n = G.UIT.R})
 	table.insert(t.nodes[1].nodes[1].nodes[1].nodes, selector)
 	return t
 end
@@ -1410,15 +1343,7 @@ function create_UIBox_your_collection_boosters()
 	local t = booster_ui()
 	local selector = 
 		(SMODS.AltTextures["Booster"] and #SMODS.AltTextures["Booster"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = -0.3 },
-			nodes = {create_option_cycle({
-				w = 4.5,
-				scale = 0.8,
-				colour = G.C.BLUE,
-				options = SMODS.AltTextures["Booster"].names,
-				opt_callback = "select_texture",
-				current_option = G.SETTINGS.selected_texture["Booster"],
-				type = "Booster",
-		})}} or { n = G.UIT.R})
+			nodes = {create_option_cycle(SMODS.AltTextureSelectors["Booster"])}} or { n = G.UIT.R})
 	table.insert(t.nodes[1].nodes[1].nodes[1].nodes, selector)
 	return t
 end
@@ -1442,15 +1367,7 @@ function create_UIBox_your_collection_seals(exit)
 					no_pips = true
 			})}} or { n = G.UIT.R }), 
 			(SMODS.AltTextures["Seal"] and #SMODS.AltTextures["Seal"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = 0.1 },
-				nodes = {create_option_cycle({
-					w = 4.5,
-					scale = 0.6,
-					colour = G.C.BLUE,
-					options = SMODS.AltTextures["Seal"].names,
-					opt_callback = "select_texture",
-					current_option = G.SETTINGS.selected_texture["Seal"],
-					type = "Seal",
-			})}} or { n = G.UIT.R }),
+				nodes = {create_option_cycle(SMODS.AltTextureSelectors["Seal"])}} or { n = G.UIT.R }),
 		}
 	}
 	table.insert(t.nodes[1].nodes[1].nodes[1].nodes, selector)		
