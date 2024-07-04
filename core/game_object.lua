@@ -2429,71 +2429,44 @@ function loadAPIs()
     ----- API CODE GameObject.AltTexture
     -------------------------------------------------------------------------------------------------
 
-
-    SMODS.AltTexturesTypes = {"Suit", "Tarot", "Planet", "Spectral", "Joker", "Enhanced", "Back", "Seal", "Voucher", "Booster", "Tag", "Blind"}
-    SMODS.AltTextures = {
-        Suit = {names = {}}, Tarot = {names = {}}, Planet = {names = {}}, Spectral = {names = {}},
-        Joker = {names = {}}, Voucher = {names = {}}, Booster = {names = {}}, Enhanced = {names = {}},
-        Back = {names = {}}, Tag = {names = {}}, Seal = {names = {}}, Blind = {names = {}}
-    }
-
-        
-    ---@param key string @Missing required parameter for %s declaration: %s
-    ---@param type string
-    ---@param name string
+    -- AltTextures are separated into subtables based on their set
+    SMODS.AltTextures = {}
     SMODS.AltTexture = SMODS.GameObject:extend {
-        obj_table = {},
-        obj_buffer = {},
+        texture_set_buffer = {"Suit", "Tarot", "Planet", "Spectral", "Joker", "Enhanced", "Back", "Seal", "Voucher", "Booster", "Tag", "Blind"},
         required_params = {
             'key',
-            'type',
+            'texture_set',
             'name'
         },
         set = 'AltTexture',
         prefix = 'tex',
         inject = function(self)
-            self.name = (self.name:len() < 18 and self.name or self.name:sub(1,16).."...")
-            -- Do not create textures for any types that do not exist
-            if not G.P_CENTER_POOLS[self.type] and self.type ~= "Suit" and self.type ~= "Blind" or SMODS.AltTextures[self.type] and SMODS.AltTextures[self.type][self.name] then return end
-            
-            -- Initialize new texture types, including a default texture 
-            if not SMODS.AltTextures[self.type] then
-                table.insert(SMODS.AltTexturesTypes, self.type)
-                SMODS.AltTextures[self.type] = {names = {}}
-            end
-            if #SMODS.AltTextures[self.type].names == 0 then
-                if self.name ~= "Default" then create_default_alt_texture(self.type) end
-            end
-            table.insert(SMODS.AltTextures[self.type].names, self.name)
+            -- TODO deleted function that truncated names that were too long.
+            -- Better solution is to ensure the text shrinks to fit.
 
-            SMODS.AltTextures[self.type][self.name] = {
-                name = self.name,
-                order = #SMODS.AltTextures[self.type].names,
-            }
-            if self.type == "Suit" then
-                SMODS.AltTextures[self.type][self.name].suits = self.suits or SMODS.AltTextures[self.type]["Default"].suits
+            -- Initialize new texture set if needed
+            if not SMODS.AltTextures[self.texture_set] then
+                table.insert(SMODS.AltTextures.texture_set_buffer, self.texture_set)
+                SMODS.AltTextures[self.texture_set] = {}
             end
+            table.insert(SMODS.AltTextures[self.texture_set], self)
 
             -- Initialize the new texture
+            -- TODO make these just one function
             if self.palette then 
-                SMODS.AltTextures[self.type][self.name].palette = true
                 prepare_palette(self)
             elseif self.texture then 
-                SMODS.AltTextures[self.type][self.name].texture = true
                 atlas_to_texture(self)
-            end
-
-            if not G.SETTINGS.selected_texture[self.type] then
-                G.SETTINGS.selected_texture[self.type] = SMODS.AltTextures[self.type][self.name]
             end
         end
     }
+    for _, v in ipairs(SMODS.AltTexture.texture_set_buffer) do
+        SMODS.AltTextures[v] = {}
+    end
 
     -- Default palettes defined for base game suits
     SMODS.AltTexture({
         key = "base_cards",
-        old_colours = {},
-        new_colours = {},
         suits = {
             Clubs = "235955",
             Spades = "3c4368",
@@ -2502,11 +2475,9 @@ function loadAPIs()
         },
         type = "Suit",
         name = "Default",
-        palette = true,
     })   
     SMODS.AltTexture({
         key = "high_contrast_cards",
-        texture = true,
         atlas_key = "cards_2",
         suit_pips = "ui_2",
         suits = {
@@ -2535,43 +2506,6 @@ function loadAPIs()
         SMODS.Back:take_ownership(v.key, {atlas = "Back"})
     end
     SMODS.NO_LOG = false
-    
-   
-    SMODS.Atlas({
-        key = "Planet",
-        path = "resources/textures/"..G.SETTINGS.GRAPHICS.texture_scaling.."x/Tarots.png",
-        px = 71,
-        py = 95,
-        inject = create_base_game_atlas
-    })
-    SMODS.Atlas({
-        key = "Spectral",
-        path = "resources/textures/"..G.SETTINGS.GRAPHICS.texture_scaling.."x/Tarots.png",
-        px = 71,
-        py = 95,
-        inject = create_base_game_atlas
-    })
-    SMODS.Atlas({
-        key = "Enhanced",
-        path = "resources/textures/"..G.SETTINGS.GRAPHICS.texture_scaling.."x/Enhancers.png",
-        px = 71,
-        py = 95,
-        inject = create_base_game_atlas
-    })
-    SMODS.Atlas({
-        key = "Back",
-        path = "resources/textures/"..G.SETTINGS.GRAPHICS.texture_scaling.."x/Enhancers.png",
-        px = 71,
-        py = 95,
-        inject = create_base_game_atlas
-    })
-    SMODS.Atlas({
-        key = "Blind",
-        path = "resources/textures/"..G.SETTINGS.GRAPHICS.texture_scaling.."x/BlindChips.png",
-        px = 34,
-        py = 34,
-        inject = create_base_game_atlas
-    })
 
     -------------------------------------------------------------------------------------------------
     ------- API CODE GameObject.Keybind
