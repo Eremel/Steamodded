@@ -88,7 +88,7 @@ function loadAPIs()
         local o = nil
         for i, key in ipairs(self.obj_buffer) do
             o = self.obj_table[key]
-            if not o.no_log then boot_print_stage(('Injecting %s: %s'):format(o.set, o.key)) end
+            boot_print_stage(('Injecting %s: %s'):format(o.set, o.key))
             o.atlas = o.atlas or o.set
 
             if o._d == nil and o._u == nil then
@@ -102,12 +102,12 @@ function loadAPIs()
 
             -- Setup Localize text
             o:process_loc_text()
-            if not o.no_log then sendInfoMessage(('Registered game object %s of type %s'):format(o.key, o.set), o.set or 'GameObject') end
+            sendInfoMessage(('Registered game object %s of type %s'):format(o.key, o.set), o.set or 'GameObject')
         end
     end
 
     --- Takes control of vanilla objects. Child class must implement get_obj for this to function.
-    function SMODS.GameObject:take_ownership(key, obj, silent, no_log)
+    function SMODS.GameObject:take_ownership(key, obj, silent)
         key = (self.omit_prefix or obj.omit_prefix or key:sub(1, #self.prefix + 1) == self.prefix .. '_') and key or
             ('%s_%s'):format(self.prefix, key)
         local o = self.obj_table[key] or self:get_obj(key)
@@ -147,7 +147,6 @@ function loadAPIs()
                 end
             end
         end
-        if no_log then o.no_log = true end
         o.taken_ownership = true
         o:register()
         return o
@@ -2519,21 +2518,23 @@ function loadAPIs()
         type = "Suit",
         name = "High Contrast",
     })
+    SMODS.NO_LOG = true
     for k,v in pairs(G.P_CENTER_POOLS.Tarot) do
-        SMODS.Consumable:take_ownership(v.key, {atlas = "Tarot"}, nil, true)
+        SMODS.Consumable:take_ownership(v.key, {atlas = "Tarot"})
     end
     for _,v in pairs(G.P_CENTER_POOLS.Planet) do
-        SMODS.Consumable:take_ownership(v.key, {atlas = "Planet"}, nil, true)
+        SMODS.Consumable:take_ownership(v.key, {atlas = "Planet"})
     end
     for _,v in pairs(G.P_CENTER_POOLS.Spectral) do
-        SMODS.Consumable:take_ownership(v.key, {atlas = "Spectral"}, nil, true)
+        SMODS.Consumable:take_ownership(v.key, {atlas = "Spectral"})
     end
     for _,v in pairs(G.P_CENTER_POOLS.Enhanced) do
-        SMODS.Enhancement:take_ownership(v.key, {atlas = "Enhanced"}, nil, true)
+        SMODS.Enhancement:take_ownership(v.key, {atlas = "Enhanced"})
     end
     for _,v in pairs(G.P_CENTER_POOLS.Back) do
-        SMODS.Back:take_ownership(v.key, {atlas = "Back"}, nil, true)
+        SMODS.Back:take_ownership(v.key, {atlas = "Back"})
     end
+    SMODS.NO_LOG = false
     
    
     SMODS.Atlas({

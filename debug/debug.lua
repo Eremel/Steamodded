@@ -35,6 +35,9 @@ function sendFatalMessage(message, logger)
 end
 
 function sendMessageToConsole(level, logger, message)
+    if SMODS.NO_LOG then
+        return
+    end
     level = level or "DEBUG"
     level = string.format("%-5s", level)
     logger = logger or "DefaultLogger"
