@@ -19,12 +19,10 @@ function sendDebugMessage(message, logger)
 end
 
 function sendInfoMessage(message, logger)
-	-- space in info string to align the logs in console
     sendMessageToConsole("INFO ", logger, message)
 end
 
 function sendWarnMessage(message, logger)
-	-- space in warn string to align the logs in console
 	sendMessageToConsole("WARN ", logger, message)
 end
 
@@ -38,6 +36,7 @@ end
 
 function sendMessageToConsole(level, logger, message)
     level = level or "DEBUG"
+    level = string.format("%-5s", level)
     logger = logger or "DefaultLogger"
     message = message or "Default log message"
     date = os.date('%Y-%m-%d %H:%M:%S')
