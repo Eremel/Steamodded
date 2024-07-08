@@ -2490,7 +2490,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             Diamonds = "e29000",
             Hearts = "f83b2f"
         },
-        set = "Suit",
+        texture_set = "Suit",
         name = "High Contrast",
     })
     SMODS.NO_LOG = true
