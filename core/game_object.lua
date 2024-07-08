@@ -2417,6 +2417,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     -- The whole table can be used as an argument to create_option_cycle().
     SMODS.AltTextureSelectors = {}
     SMODS.AltTexture = SMODS.GameObject:extend {
+        obj_table = {},
+        obj_buffer = {},
         texture_set_buffer = {"Suit", "Tarot", "Planet", "Spectral", "Joker", "Enhanced", "Back", "Seal", "Voucher", "Booster", "Tag", "Blind"},
         required_params = {
             'key',
