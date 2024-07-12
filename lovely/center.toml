@@ -15,7 +15,9 @@ payload = '''
 local obj = self.config.center
 if obj.set_ability and type(obj.set_ability) == 'function' then
 	obj:set_ability(self, initial, delay_sprites)
-end'''
+end
+
+'''
 line_prepend = '$indent'
 [[patches]]
 [patches.pattern]
@@ -155,15 +157,6 @@ pattern = "(?<indent>[\t ]*)if(?<a> )not card.unlocked and card.unlock_condition
 position = 'at'
 root_capture = 'a'
 payload = ' not custom_check and '
-
-# Game:init_item_prototypes()
-[[patches]]
-[patches.pattern]
-target = 'game.lua'
-pattern = 'if TESTHELPER_unlocks then v.unlocked = true; v.discovered = true;v.alerted = true end --REMOVE THIS'
-position = 'before'
-match_indent = true
-payload = 'v._d, v._u = v.discovered, v.unlocked'
 
 #Card:use_consumable()
 [[patches]]

@@ -66,6 +66,12 @@ function inspectFunction(func)
     return result
 end
 
+function SMODS._save_d_u(o)
+    assert(not o._discovered_unlocked_overwritten)
+    o._d, o._u = o.discovered, o.unlocked
+    o._saved_d_u = true
+end
+
 function SMODS.SAVE_UNLOCKS()
     boot_print_stage("Saving Unlocks")
 	G:save_progress()
@@ -88,6 +94,7 @@ function SMODS.SAVE_UNLOCKS()
     meta.discovered = meta.discovered or {}
     meta.alerted = meta.alerted or {}
 
+    G.P_LOCKED = {}
     for k, v in pairs(G.P_CENTERS) do
         if not v.wip and not v.demo then
             if TESTHELPER_unlocks then
@@ -154,6 +161,16 @@ function SMODS.SAVE_UNLOCKS()
             elseif v.discovered then
                 v.alerted = false
             end
+        end
+    end
+    for _, t in ipairs{
+        G.P_CENTERS,
+        G.P_BLINDS,
+        G.P_TAGS,
+        G.P_SEALS,
+    } do
+        for k, v in pairs(t) do
+            v._discovered_unlocked_overwritten = true
         end
     end
 end
