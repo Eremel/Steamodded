@@ -134,10 +134,12 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             if not o.no_log then boot_print_stage(('Injecting %s: %s'):format(o.set, o.key)) end
             o.atlas = o.atlas or o.set
 
-            if o._d == nil and o._u == nil then
-                o._d, o._u = o.discovered, o.unlocked
-            else
+            if o._discovered_unlocked_overwritten then
+                assert(o._saved_d_u)
                 o.discovered, o.unlocked = o._d, o._u
+                o._discovered_unlocked_overwritten = false
+            else
+                SMODS._save_d_u(o)
             end
 
             -- Add centers to pools
@@ -145,7 +147,11 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
 
             -- Setup Localize text
             o:process_loc_text()
-            if not o.no_log then sendInfoMessage(('Registered game object %s of type %s'):format(o.key, o.set), o.set or 'GameObject') end
+
+            sendInfoMessage(
+                ('Injected game object %s of type %s')
+                :format(o.key, o.set), o.set or 'GameObject'
+            )
         end
     end
 
@@ -161,10 +167,13 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             )
             return
         end
-        local original_has_loc = orig_o.taken_ownership and (orig_o.loc_txt or orig_o.loc_vars or (orig_o.generate_ui ~= self.generate_ui))
         local is_loc_modified = obj.loc_txt or obj.loc_vars or obj.generate_ui
-        if not original_has_loc and not is_loc_modified then obj.generate_ui = 0 end
-        if is_loc_modified and orig_o.generate_ui == 0 then obj.generate_ui = obj.generate_ui or self.generate_ui end
+        if is_loc_modified then orig_o.is_loc_modified = true end
+        if not orig_o.is_loc_modified then
+            -- Setting generate_ui to this sentinel value
+            -- makes vanilla localization code run instead of SMODS's code
+            orig_o.generate_ui = 0
+        end
         -- TODO
         -- it's unclear how much we should modify `obj` on a failed take_ownership call.
         -- do we make sure the metatable is set early, or wait until the end?
@@ -177,20 +186,16 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             if silent then orig_o.no_main_mod_badge = true end
             orig_o.rarity_original = orig_o.rarity
         end
-        for k, v in pairs(obj) do o[k] = v end
-        if o.mod and not o.raw_atlas_key and not o.mod.omit_mod_prefix then
-            for _, v in ipairs({ 'atlas', 'hc_atlas', 'lc_atlas', 'hc_ui_atlas', 'lc_ui_atlas', 'sticker_atlas' }) do
-                -- was a new atlas provided with this call?
-                if obj[v] and (not atlas_override[v] or (atlas_override[v] ~= o[v])) then
-                    o[v] = ('%s_%s'):format(
-                        SMODS.current_mod.prefix, o[v])
-                end
-            end
+        if orig_o._saved_d_u then
+            orig_o.discovered, orig_o.unlocked = orig_o._d, orig_o._u
+            orig_o._saved_d_u = false
+            orig_o._discovered_unlocked_overwritten = false
         end
-        if no_log then o.no_log = true end
-        o.taken_ownership = true
-        o:register()
-        return o
+        for k, v in pairs(obj) do orig_o[k] = v end
+        SMODS._save_d_u(orig_o)
+        orig_o.taken_ownership = true
+        orig_o:register()
+        return orig_o
     end
 
     -- Inject all SMODS Objects that are part of this class or a subclass.
@@ -576,7 +581,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         applied_stakes = {},
         pos = { x = 0, y = 0 },
         sticker_pos = { x = 1, y = 0 },
-        color = G.C.WHITE,
+        colour = G.C.WHITE,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -590,7 +595,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             G.GAME.modifiers.no_blind_reward = G.GAME.modifiers.no_blind_reward or {}
             G.GAME.modifiers.no_blind_reward.Small = true
         end,
-        color = G.C.RED,
+        colour = G.C.RED,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -603,7 +608,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.modifiers.scaling = math.max(G.GAME.modifiers.scaling or 0, 2)
         end,
-        color = G.C.GREEN,
+        colour = G.C.GREEN,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -616,7 +621,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.modifiers.enable_eternals_in_shop = true
         end,
-        color = G.C.BLACK,
+        colour = G.C.BLACK,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -629,7 +634,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.starting_params.discards = G.GAME.starting_params.discards - 1
         end,
-        color = G.C.BLUE,
+        colour = G.C.BLUE,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -642,7 +647,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.modifiers.scaling = math.max(G.GAME.modifiers.scaling or 0, 3)
         end,
-        color = G.C.PURPLE,
+        colour = G.C.PURPLE,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -655,7 +660,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.modifiers.enable_perishables_in_shop = true
         end,
-        color = G.C.ORANGE,
+        colour = G.C.ORANGE,
         loc_txt = {}
     }
     SMODS.Stake {
@@ -667,7 +672,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         modifiers = function()
             G.GAME.modifiers.enable_rentals_in_shop = true
         end,
-        color = G.C.GOLD,
+        colour = G.C.GOLD,
         shiny = true,
         loc_txt = {}
     }
@@ -1111,6 +1116,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         return {
             inject = function(self)
                 self.unlock_condition.stake = SMODS.Stakes[stake].stake_level
+                SMODS.Back.inject(self)
             end
         }
     end
@@ -2058,7 +2064,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         set = 'Tag',
         pos = { x = 0, y = 0 },
         config = {},
-        get_obj = function(key) return G.P_TAGS[key] end,
+        get_obj = function(self, key) return G.P_TAGS[key] end,
         process_loc_text = function(self)
             SMODS.process_loc_text(G.localization.descriptions.Tag, self.key, self.loc_txt)
         end,
@@ -2188,11 +2194,11 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         -- You will probably want to override this if your enhancement interacts with
         -- those parts of the base card.
         generate_ui = function(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-            if specific_vars.nominal_chips and not self.replace_base_card then
+            if specific_vars and specific_vars.nominal_chips and not self.replace_base_card then
                 localize { type = 'other', key = 'card_chips', nodes = desc_nodes, vars = { specific_vars.nominal_chips } }
             end
             SMODS.Enhancement.super.generate_ui(self, info_queue, card, desc_nodes, specific_vars, full_UI_table)
-            if specific_vars.bonus_chips then
+            if specific_vars and specific_vars.bonus_chips then
                 local remaining_bonus_chips = specific_vars.bonus_chips - (self.loc_subtract_extra_chips or 0)
                 if remaining_bonus_chips > 0 then
                     localize { type = 'other', key = 'card_extra_chips', nodes = desc_nodes, vars = { specific_vars.bonus_chips - (self.loc_subtract_extra_chips or 0) } }
