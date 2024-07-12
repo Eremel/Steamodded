@@ -156,47 +156,50 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     end
 
     --- Takes control of vanilla objects. Child class must implement get_obj for this to function.
-    function SMODS.GameObject:take_ownership(key, obj, silent, no_log)
-        key = (self.omit_prefix or obj.omit_prefix or key:sub(1, #self.prefix + 1) == self.prefix .. '_') and key or
-            ('%s_%s'):format(self.prefix, key)
-        local o = self.obj_table[key] or self:get_obj(key)
-        if not o then
-
-            sendWarnMessage(
-                ('Cannot take ownership of %s: Does not exist.'):format(key), self.set
-            )
-            return
+        function SMODS.GameObject:take_ownership(key, obj, silent)
+            if self.check_duplicate_register(obj) then return end
+            assert(obj.key == nil or obj.key == key)
+            obj.key = key
+            assert(obj.mod == nil)
+            SMODS.add_prefixes(self, obj, true)
+            key = obj.key
+            local orig_o = self.obj_table[key] or (self.get_obj and self:get_obj(key))
+            if not orig_o then
+                sendWarnMessage(
+                    ('Cannot take ownership of %s: Does not exist.'):format(key), self.set
+                )
+                return
+            end
+            local is_loc_modified = obj.loc_txt or obj.loc_vars or obj.generate_ui
+            if is_loc_modified then orig_o.is_loc_modified = true end
+            if not orig_o.is_loc_modified then
+                -- Setting generate_ui to this sentinel value
+                -- makes vanilla localization code run instead of SMODS's code
+                orig_o.generate_ui = 0
+            end
+            -- TODO
+            -- it's unclear how much we should modify `obj` on a failed take_ownership call.
+            -- do we make sure the metatable is set early, or wait until the end?
+            setmetatable(orig_o, self)
+            if orig_o.mod then
+                orig_o.dependencies = orig_o.dependencies or {}
+                if not silent then table.insert(orig_o.dependencies, SMODS.current_mod.id) end
+            else
+                orig_o.mod = SMODS.current_mod
+                if silent then orig_o.no_main_mod_badge = true end
+                orig_o.rarity_original = orig_o.rarity
+            end
+            if orig_o._saved_d_u then
+                orig_o.discovered, orig_o.unlocked = orig_o._d, orig_o._u
+                orig_o._saved_d_u = false
+                orig_o._discovered_unlocked_overwritten = false
+            end
+            for k, v in pairs(obj) do orig_o[k] = v end
+            SMODS._save_d_u(orig_o)
+            orig_o.taken_ownership = true
+            orig_o:register()
+            return orig_o
         end
-        local is_loc_modified = obj.loc_txt or obj.loc_vars or obj.generate_ui
-        if is_loc_modified then orig_o.is_loc_modified = true end
-        if not orig_o.is_loc_modified then
-            -- Setting generate_ui to this sentinel value
-            -- makes vanilla localization code run instead of SMODS's code
-            orig_o.generate_ui = 0
-        end
-        -- TODO
-        -- it's unclear how much we should modify `obj` on a failed take_ownership call.
-        -- do we make sure the metatable is set early, or wait until the end?
-        setmetatable(orig_o, self)
-        if orig_o.mod then
-            orig_o.dependencies = orig_o.dependencies or {}
-            if not silent then table.insert(orig_o.dependencies, SMODS.current_mod.id) end
-        else
-            orig_o.mod = SMODS.current_mod
-            if silent then orig_o.no_main_mod_badge = true end
-            orig_o.rarity_original = orig_o.rarity
-        end
-        if orig_o._saved_d_u then
-            orig_o.discovered, orig_o.unlocked = orig_o._d, orig_o._u
-            orig_o._saved_d_u = false
-            orig_o._discovered_unlocked_overwritten = false
-        end
-        for k, v in pairs(obj) do orig_o[k] = v end
-        SMODS._save_d_u(orig_o)
-        orig_o.taken_ownership = true
-        orig_o:register()
-        return orig_o
-    end
 
     -- Inject all SMODS Objects that are part of this class or a subclass.
     function SMODS.injectObjects(class)
@@ -2442,7 +2445,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             'name'
         },
         set = 'AltTexture',
-        prefix = 'tex',
+        class_prefix = 'tex',
         inject = function(self)
             self.name = (self.name:len() < 18 and self.name or self.name:sub(1,16).."...")
             -- Do not create textures for any types that do not exist
