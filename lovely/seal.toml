@@ -87,6 +87,10 @@ if effects[ii].seals then
         update_hand_text({delay = 0}, {mult = mult})
         card_eval_status_text(scoring_hand[i], 'x_mult', effects[ii].seals.x_mult, percent)
     end
+
+    if effects[ii].seals.func then
+        effects[ii].seals.func()
+    end
 end
 
 '''
