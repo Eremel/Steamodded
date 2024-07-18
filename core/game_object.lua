@@ -936,6 +936,11 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         obj_table = SMODS.Centers,
         obj_buffer = {},
         get_obj = function(self, key) return G.P_CENTERS[key] end,
+        register = function(self)
+            -- 0.9.8 defense
+            self.name = self.name or self.key
+            SMODS.Center.super.register(self)
+        end,
         inject = function(self)
             G.P_CENTERS[self.key] = self
             SMODS.insert_pool(G.P_CENTER_POOLS[self.set], self)
@@ -1102,6 +1107,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         atlas = 'centers',
         pos = { x = 0, y = 0 },
         config = {},
+        unlock_condition = {},
         stake = 1,
         class_prefix = 'b',
         required_params = {
@@ -1417,6 +1423,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             value = 0,
         },
         register = function(self)
+            -- 0.9.8 compat
+            self.name = self.name or self.key
             if self.used_card_keys[self.card_key] then
                 sendWarnMessage(('Tried to use duplicate card key %s, aborting registration'):format(self.card_key), self.set)
                 return
@@ -2134,15 +2142,14 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     }
 
     -------------------------------------------------------------------------------------------------
-    ----- API CODE GameObject.PayoutArg
+    ----- API CODE GameObject.DollarRow
     -------------------------------------------------------------------------------------------------
 
-    -- TODO needs rename- something with Row: DollarRow?
-    SMODS.PayoutArgs = {}
-    SMODS.PayoutArg = SMODS.GameObject:extend {
+    SMODS.DollarRows = {}
+    SMODS.DollarRow = SMODS.GameObject:extend {
         obj_buffer = {},
         obj_table = {},
-        set = 'Payout Argument',
+        set = 'Dollar Row',
         class_prefix = 'p',
         required_params = {
             'key'
