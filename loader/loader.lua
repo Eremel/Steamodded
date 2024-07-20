@@ -225,7 +225,6 @@ function loadMods(modsDirectory)
                         if mod.prefix then
                             used_prefixes[mod.prefix] = mod.id
                         end
-                        mod.content = file_content
                         mod.optional_dependencies = {}
                         if mod.dump_loc then
                             SMODS.dump_loc = {
@@ -329,14 +328,17 @@ function loadMods(modsDirectory)
                 SMODS.current_mod = mod
                 if mod.outdated then
                     SMODS.compat_0_9_8.with_compat(function()
-                        assert(load(mod.content, "=[SMODS " .. mod.id .. ' "' .. mod.main_file .. '"]'))()
+                        mod.config = {}
+                        assert(load(NFS.read(mod.path..mod.main_file), ('=[SMODS %s "%s"]'):format(mod.id, mod.main_file)))()
                         for k, v in pairs(SMODS.compat_0_9_8.init_queue) do
                             v()
                             SMODS.compat_0_9_8.init_queue[k] = nil
                         end
                     end)
                 else
-                    assert(load(mod.content, "=[SMODS " .. mod.id .. ' "' .. mod.main_file .. '"]'))()
+                    local load_func = type(mod.load_mod_config) == 'function' and mod.load_mod_config or SMODS.load_mod_config
+                    load_func(mod)
+                    assert(load(NFS.read(mod.path..mod.main_file), ('=[SMODS %s "%s"]'):format(mod.id, mod.main_file)))()
                 end
                 SMODS.current_mod = nil
             else
@@ -412,6 +414,8 @@ end
 
 function initSteamodded()
     initGlobals()
+    boot_print_stage("Loading Steamodded config")
+    SMODS:load_mod_config()
     boot_print_stage("Loading APIs")
     loadAPIs()
     boot_print_stage("Loading Mods")

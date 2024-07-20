@@ -329,7 +329,7 @@ function SMODS.restart_game()
 end
 
 function SMODS.create_mod_badges(obj, badges)
-    if not G.SETTINGS.no_mod_badges and obj and obj.mod and obj.mod.display_name and not obj.no_mod_badges then
+    if not SMODS.config.no_mod_badges and obj and obj.mod and obj.mod.display_name and not obj.no_mod_badges then
         local mods = {}
         badges.mod_set = badges.mod_set or {}
         if not badges.mod_set[obj.mod.id] and not obj.no_main_mod_badge then table.insert(mods, obj.mod) end
@@ -400,6 +400,9 @@ function SMODS.create_loc_dump()
 	NFS.write(SMODS.dump_loc.path..'localization/dump.lua', str)
 end
 
+-- Serializes an input table in valid Lua syntax
+-- Keys must be of type number or string
+-- Values must be of type number, boolean, string or table
 function serialize(t, indent)
     indent = indent or ''
     local str = '{\n'
@@ -407,26 +410,33 @@ function serialize(t, indent)
         str = str .. indent .. '\t'
 		if type(v) == 'number' then
             str = str .. v
+        elseif type(v) == 'boolean' then
+            str = str .. (v and 'true' or 'false')
         elseif type(v) == 'string' then
             str = str .. serialize_string(v)
         elseif type(v) == 'table' then
             str = str .. serialize(v, indent .. '\t')
         else
-            assert(false)
+            -- not serializable
+            str = str .. 'nil'
         end
 		str = str .. ',\n'
 	end
     for k, v in pairs(t) do
 		if type(k) == 'string' then
         	str = str .. indent .. '\t' .. '[' .. serialize_string(k) .. '] = '
+            
 			if type(v) == 'number' then
 				str = str .. v
+            elseif type(v) == 'boolean' then
+                str = str .. (v and 'true' or 'false')
 			elseif type(v) == 'string' then
 				str = str .. serialize_string(v)
 			elseif type(v) == 'table' then
 				str = str .. serialize(v, indent .. '\t')
 			else
-				assert(false)
+				-- not serializable
+                str = str .. 'nil'
 			end
 			str = str .. ',\n'
 		end

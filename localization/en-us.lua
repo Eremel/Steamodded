@@ -63,8 +63,7 @@ return {
 			b_mods_cap = 'MODS',
             b_modded_version = 'Modded Version!',
             b_steamodded = 'Steamodded',
-            b_steamodded_credits = ' Steamodded Credits ',
-            b_steamodded_settings = ' Steamodded Settings ',
+            b_credits = 'Credits',
             b_open_mods_dir = 'Open Mods directory',
             b_no_mods = 'No mods have been detected...',
             b_mod_list = 'List of Activated Mods',
@@ -79,6 +78,8 @@ return {
 			b_authors = 'Authors',
             b_unknown = 'Unknown',
             b_by = ' By: ',
+			b_config = "Config",
+			b_additions = 'Additions',
             b_applies_stakes_1 = 'Applies ',
 			b_applies_stakes_2 = '',
 		}
