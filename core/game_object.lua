@@ -775,7 +775,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             }
         
             local t = create_UIBox_generic_options({
-                back_func = G.ACTIVE_MOD_UI and "openModUI_"..G.ACTIVE_MOD_UI.id or 'your_collection',
+                back_func = #type_buf>3 and 'your_collection_consumables' or G.ACTIVE_MOD_UI and "openModUI_"..G.ACTIVE_MOD_UI.id or 'your_collection',
                 contents = {
                     { n = G.UIT.R, config = { align = "cm", minw = 2.5, padding = 0.1, r = 0.1, colour = G.C.BLACK, emboss = 0.05 }, nodes = deck_tables },
                     { n = G.UIT.R, config = { align = "cm", padding = 0 }, nodes = selector },

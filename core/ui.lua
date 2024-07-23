@@ -267,30 +267,58 @@ function buildAdditionsTab(mod)
 	local consumable_nodes = {}
 	for _, key in ipairs(SMODS.ConsumableType.obj_buffer) do
 		local id = 'your_collection_'..key:lower()..'s'
-		consumable_nodes[#consumable_nodes+1] = UIBox_button({button = id, label = {localize('b_'..key:lower()..'_cards')}, count = modsCollectionTally(G.P_CENTER_POOLS[key]), minw = 4, id = id, colour = G.C.SECONDARY_SET[key], func = 'is_collection_empty'})
+		local tally = modsCollectionTally(G.P_CENTER_POOLS[key])
+		if tally.of > 0 then
+			consumable_nodes[#consumable_nodes+1] = UIBox_button({button = id, label = {localize('b_'..key:lower()..'_cards')}, count = tally, minw = 4, id = id, colour = G.C.SECONDARY_SET[key]})
+		end
+	end
+	if #consumable_nodes > 3 then
+		consumable_nodes = { UIBox_button({ button = 'your_collection_consumables', label = {localize('b_stat_consumables'), localize{ type = 'variable', key = 'c_types', vars = {#consumable_nodes} } }, count = modsCollectionTally(G.P_CENTER_POOLS.Consumeables), minw = 4, minh = 4, id = 'your_collection_consumables', colour = G.C.FILTER }) }
+	end
+
+	local leftside_nodes = {}
+	for _, v in ipairs { { k = 'Joker', minh = 1.7, scale = 0.6 }, { k = 'Back', b = 'decks' }, { k = 'Voucher' } } do
+		v.b = v.b or v.k:lower()..'s'
+		v.l = v.l or v.b
+		local tally = modsCollectionTally(G.P_CENTER_POOLS[v.k])
+		if tally.of > 0 then
+			leftside_nodes[#leftside_nodes+1] = UIBox_button({button = 'your_collection_'..v.b, label = {localize('b_'..v.l)}, count = modsCollectionTally(G.P_CENTER_POOLS[v.k]),  minw = 5, minh = v.minh, scale = v.scale, id = 'your_collection_'..v.b})
+		end
+	end
+	if #consumable_nodes > 0 then
+		leftside_nodes[#leftside_nodes + 1] = {
+			n = G.UIT.R,
+			config = { align = "cm", padding = 0.1, r = 0.2, colour = G.C.BLACK },
+			nodes = {
+				{
+					n = G.UIT.C,
+					config = { align = "cm", maxh = 2.9 },
+					nodes = {
+						{ n = G.UIT.T, config = { text = localize('k_cap_consumables'), scale = 0.45, colour = G.C.L_BLACK, vert = true, maxh = 2.2 } },
+					}
+				},
+				{ n = G.UIT.C, config = { align = "cm", padding = 0.15 }, nodes = consumable_nodes }
+			}
+		}
+	end
+
+	local rightside_nodes = {}
+	for _, v in ipairs { { k = 'Enhanced', b = 'enhancements', l = 'enhanced_cards'}, { k = 'Seal' }, { k = 'Edition' }, { k = 'Booster', l = 'booster_packs' }, { b = 'tags', p = G.P_TAGS }, { b = 'blinds', p = G.P_BLINDS, minh = 2.0 }, } do
+		v.b = v.b or v.k:lower()..'s'
+		v.l = v.l or v.b
+		v.p = v.p or G.P_CENTER_POOLS[v.k]
+		local tally = modsCollectionTally(v.p)
+		if tally.of > 0 then
+			rightside_nodes[#rightside_nodes+1] = UIBox_button({button = 'your_collection_'..v.b, label = {localize('b_'..v.l)}, count = modsCollectionTally(v.p),  minw = 5, minh = v.minh, id = 'your_collection_'..v.b})
+		end
+	end
+	if mod.custom_collection_tabs then
+		rightside_nodes[#rightside_nodes+1] = UIBox_button({button = 'your_collection_other_gameobjects', label = {localize('k_other')}, minw = 5, id = 'your_collection_other_gameobjects', focus_args = {snap_to = true}, func = 'is_other_gameobject_tabs'}) 
 	end
 
 	local t = {n=G.UIT.R, config={align = "cm",padding = 0.2, minw = 7}, nodes={
-		{n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes={
-		UIBox_button({button = 'your_collection_jokers', label = {localize('b_jokers')}, count = modsCollectionTally(G.P_CENTER_POOLS["Joker"]),  minw = 5, minh = 1.7, scale = 0.6, id = 'your_collection_jokers', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_decks', label = {localize('b_decks')}, count = modsCollectionTally(G.P_CENTER_POOLS["Back"]), minw = 5, id = 'your_collection_decks', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_vouchers', label = {localize('b_vouchers')}, count = modsCollectionTally(G.P_CENTER_POOLS["Voucher"]), minw = 5, id = 'your_collection_vouchers', func = 'is_collection_empty'}),
-		{n=G.UIT.R, config={align = "cm", padding = 0.1, r=0.2, colour = G.C.BLACK}, nodes={
-		  {n=G.UIT.C, config={align = "cm", maxh=2.9}, nodes={
-			{n=G.UIT.T, config={text = localize('k_cap_consumables'), scale = 0.45, colour = G.C.L_BLACK, vert = true, maxh=2.2}},
-		  }},
-		  {n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes = consumable_nodes}
-		}},
-	  }},
-	  {n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes={
-		UIBox_button({button = 'your_collection_enhancements', label = {localize('b_enhanced_cards')}, count = modsCollectionTally(G.P_CENTER_POOLS["Enhanced"]), minw = 5, id = 'your_collection_enhancements', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_seals', label = {localize('b_seals')}, count = modsCollectionTally(G.P_CENTER_POOLS["Seal"]), minw = 5, id = 'your_collection_seals', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_editions', label = {localize('b_editions')}, count = modsCollectionTally(G.P_CENTER_POOLS["Edition"]), minw = 5, id = 'your_collection_editions', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_boosters', label = {localize('b_booster_packs')}, count = modsCollectionTally(G.P_CENTER_POOLS["Booster"]), minw = 5, id = 'your_collection_boosters', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_tags', label = {localize('b_tags')}, count = modsCollectionTally(G.P_TAGS), minw = 5, id = 'your_collection_tags', func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_blinds', label = {localize('b_blinds')}, count = modsCollectionTally(G.P_BLINDS), minw = 5, minh = 2.0, id = 'your_collection_blinds', focus_args = {snap_to = true}, func = 'is_collection_empty'}),
-		UIBox_button({button = 'your_collection_other_gameobjects', label = {localize('k_other')}, minw = 5, id = 'your_collection_other_gameobjects', focus_args = {snap_to = true}, func = 'is_other_gameobject_tabs'}),
-	  }}
+		{n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes = leftside_nodes },
+	  {n=G.UIT.C, config={align = "cm", padding = 0.15}, nodes = rightside_nodes }
 	}}
 
 	local modNodes = {}
@@ -363,6 +391,94 @@ function create_UIBox_Other_GameObjects()
 	return create_UIBox_generic_options({ back_func = G.ACTIVE_MOD_UI and "openModUI_"..G.ACTIVE_MOD_UI.id or 'your_collection', contents = {t}})
 end
 
+G.FUNCS.your_collection_consumables = function(e)
+	G.SETTINGS.paused = true
+	G.FUNCS.overlay_menu{
+	  definition = create_UIBox_your_collection_consumables(),
+	}
+end
+
+function create_UIBox_your_collection_consumables()
+	local t = create_UIBox_generic_options({ back_func = G.ACTIVE_MOD_UI and "openModUI_"..G.ACTIVE_MOD_UI.id or 'your_collection', contents = {
+		{ n = G.UIT.C, config = { align = 'cm', minw = 11.5, minh = 6 }, nodes = {
+			{ n = G.UIT.O, config = { id = 'consumable_collection', object = Moveable() },}
+		}},
+	}})
+	G.E_MANAGER:add_event(Event({func = function()
+		G.FUNCS.your_collection_consumables_page({ cycle_config = { current_option = 1 }})
+		return true
+	end}))
+	return t
+end
+
+G.FUNCS.your_collection_consumables_page = function(args)
+	if not args or not args.cycle_config then return end
+  if G.OVERLAY_MENU then
+    local uie = G.OVERLAY_MENU:get_UIE_by_ID('consumable_collection')
+    if uie then 
+      if uie.config.object then 
+        uie.config.object:remove() 
+      end
+      uie.config.object = UIBox{
+        definition =  G.UIDEF.consumable_collection_page(args.cycle_config.current_option),
+        config = { align = 'cm', parent = uie}
+      }
+    end
+  end
+end
+
+G.UIDEF.consumable_collection_page = function(page)
+	local nodes_per_page = 10
+	local page_offset = nodes_per_page * ((page or 1) - 1)
+	local type_buf = {}
+	if G.ACTIVE_MOD_UI then
+		for _, v in ipairs(SMODS.ConsumableType.obj_buffer) do
+			if modsCollectionTally(G.P_CENTER_POOLS[v]).of > 0 then type_buf[#type_buf + 1] = v end
+		end
+	else
+		type_buf = SMODS.ConsumableType.obj_buffer
+	end
+	local center_options = {}
+	for i = 1, math.ceil(#type_buf / nodes_per_page) do
+		table.insert(center_options,
+			localize('k_page') ..
+			' ' .. tostring(i) .. '/' .. tostring(math.ceil(#type_buf / nodes_per_page)))
+	end
+	local option_nodes = { create_option_cycle({
+		options = center_options,
+		w = 4.5,
+		cycle_shoulders = true,
+		opt_callback = 'your_collection_consumables_page',
+		focus_args = { snap_to = true, nav = 'wide' },
+		current_option = page or 1,
+		colour = G.C.RED,
+		no_pips = true
+	}) }
+	local function create_consumable_nodes(_start, _end)
+		local t = {}
+		for i = _start, _end do
+			local key = type_buf[i]
+			if not key then
+				if i == _start then break end
+				t[#t+1] = { n = G.UIT.R, config = { align ='cm', minh = 0.81 }, nodes = {}}
+			else 
+				local id = 'your_collection_'..key:lower()..'s'
+				t[#t+1] = UIBox_button({button = id, label = {localize('b_'..key:lower()..'_cards')}, count = G.ACTIVE_MOD_UI and modsCollectionTally(G.P_CENTER_POOLS[key]) or G.DISCOVER_TALLIES[key:lower()..'s'], minw = 4, id = id, colour = G.C.SECONDARY_SET[key]})
+			end
+		end
+		return t
+	end 
+
+	local t = { n = G.UIT.C, config = { align = 'cm' }, nodes = {
+		{n=G.UIT.R, config = {align="cm"}, nodes = {
+			{n=G.UIT.C, config={align = "tm", padding = 0.15}, nodes= create_consumable_nodes(page_offset + 1, page_offset + math.ceil(nodes_per_page/2))},
+			{n=G.UIT.C, config={align = "tm", padding = 0.15}, nodes= create_consumable_nodes(page_offset+1+math.ceil(nodes_per_page/2), page_offset + nodes_per_page)},
+		}},
+		{n=G.UIT.R, config = {align="cm"}, nodes = option_nodes},
+	}}
+	return t
+end
+
 -- TODO: Optimize this. 
 function modsCollectionTally(pool, set)
 	local set = set or nil
@@ -387,18 +503,6 @@ function modsCollectionTally(pool, set)
 	end
 
 	return obj_tally
-end
-
--- TODO: Make better solution
-G.FUNCS.is_collection_empty = function(e)
-	e.config.original_colour = e.config.original_colour or e.config.colour
-	if e.config.count and e.config.count.of <= 0 then
-        e.config.colour = G.C.UI.BACKGROUND_INACTIVE
-        e.config.button = nil
-    else
-        e.config.colour = e.config.original_colour
-        e.config.button = e.config.id
-    end
 end
 
 -- TODO: Make more efficient? 
