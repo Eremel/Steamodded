@@ -750,18 +750,18 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             end
 
             INIT_COLLECTION_CARD_ALERTS()
-            local selector = {
-                (center_options and #center_options > 1 and { n = G.UIT.R, config = { align = "cm", padding = -0.1 },
-                    nodes = {create_option_cycle({
-                        options = center_options,
-                        w = 4.5,
-                        cycle_shoulders = true,
-                        opt_callback = 'your_collection_'..string.lower(self.key)..'_page',
-                        current_option = 1,
-                        colour = G.C.RED,
-                        no_pips = true
-                })}} or { n = G.UIT.R}), 
-                (SMODS.AltTextures[self.key] and #SMODS.AltTextures[self.key].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = -0.1 },
+            local option_nodes = { create_option_cycle({
+                options = center_options,
+                w = 4.5,
+                cycle_shoulders = true,
+                opt_callback = 'your_collection_' .. string.lower(self.key) .. '_page',
+                focus_args = { snap_to = true, nav = 'wide' },
+                current_option = 1,
+                colour = G.C.RED,
+                no_pips = true
+            }) }
+            if SMODS.AltTextures[self.key] and #SMODS.AltTextures[self.key].names > 1 then
+                option_nodes[#option_nodes + 1] =  { n = G.UIT.R, config = { align = "cm", padding = -0.1 },
                     nodes = {SMODS.GUI.createOptionSelector({
                         w = 4.5,
                         scale = 0.8,
@@ -770,15 +770,21 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                         opt_callback = "select_texture",
                         current_option = G.SETTINGS.selected_texture[self.key],
                         type = self.key,
-                })}} or {n = G.UIT.R}),
-                
-            }
-        
+                })}}
+            end
+            local type_buf = {}
+            if G.ACTIVE_MOD_UI then
+                for _, v in ipairs(SMODS.ConsumableType.obj_buffer) do
+                    if modsCollectionTally(G.P_CENTER_POOLS[v]).of > 0 then type_buf[#type_buf + 1] = v end
+                end
+            else
+                type_buf = SMODS.ConsumableType.obj_buffer
+            end
             local t = create_UIBox_generic_options({
                 back_func = #type_buf>3 and 'your_collection_consumables' or G.ACTIVE_MOD_UI and "openModUI_"..G.ACTIVE_MOD_UI.id or 'your_collection',
                 contents = {
                     { n = G.UIT.R, config = { align = "cm", minw = 2.5, padding = 0.1, r = 0.1, colour = G.C.BLACK, emboss = 0.05 }, nodes = deck_tables },
-                    { n = G.UIT.R, config = { align = "cm", padding = 0 }, nodes = selector },
+                    { n = G.UIT.R, config = { align = "cm", padding = 0 },                                                           nodes = option_nodes },
                 }
             })
             return t
