@@ -1132,7 +1132,17 @@ function create_UIBox_your_collection_enhancements(exit)
 						c = cols,
 						colour = G.C.RED,
 						no_pips = true
-					})}}
+					}),
+					(SMODS.AltTextures["Enhanced"] and #SMODS.AltTextures["Enhanced"].names > 1 and { n = G.UIT.R, config = { align = "cm", padding = 0.1 },
+					nodes = {SMODS.GUI.createOptionSelector({
+						w = 4.5,
+						scale = 0.8,
+						colour = G.C.BLUE,
+						options = SMODS.AltTextures["Enhanced"].names,
+						opt_callback = "select_texture",
+						current_option = G.SETTINGS.selected_texture["Enhanced"],
+						type = "Enhanced",
+				})}})}}
 			}
 		})
 	end
