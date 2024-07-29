@@ -222,33 +222,33 @@ payload = '''
 if effects[ii].edition.chip_mod then
     hand_chips = mod_chips(hand_chips + effects[ii].edition.chip_mod)
     local key_switch = (effects[ii].edition.chip_mod > 0 and 'a_chips' or 'a_chips_minus')
+    update_hand_text({delay = 0}, {chips = hand_chips})
     card_eval_status_text(scoring_hand[i], 'extra', nil, percent, nil, {
         message = localize{type='variable', key=key_switch, vars={math.abs(effects[ii].edition.chip_mod)}},
         chip_mod = true,
         colour = G.C.DARK_EDITION,
         edition = true
     })
-    update_hand_text({delay = 0}, {chips = hand_chips})
 end
 if effects[ii].edition.mult_mod then
     mult = mult + effects[ii].edition.mult_mod
+    update_hand_text({delay = 0}, {mult = mult})
     card_eval_status_text(scoring_hand[i], 'extra', nil, percent, nil, {
         message = localize{type='variable', key='a_mult', vars={effects[ii].edition.mult_mod}},
         mult_mod = true,
         colour = G.C.DARK_EDITION,
         edition = true
     })
-    update_hand_text({delay = 0}, {mult = mult})
 end
 if effects[ii].edition.x_mult_mod then
     mult = mult * effects[ii].edition.x_mult_mod
+    update_hand_text({delay = 0}, {mult = mult})
     card_eval_status_text(scoring_hand[i], 'extra', nil, percent, nil, {
         message = localize{type='variable', key='a_xmult', vars={effects[ii].edition.x_mult_mod}},
         x_mult_mod = true,
         colour = G.C.DARK_EDITION,
         edition = true
     })
-    update_hand_text({delay = 0}, {mult = mult})
 end
 if effects[ii].edition.p_dollars_mod then
     if effects[ii].card then juice_card(effects[ii].card) end
