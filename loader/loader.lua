@@ -344,6 +344,7 @@ function initSteamodded()
     loadMods(SMODS.MODS_DIR)
     initializeModUIFunctions()
     boot_print_stage("Injecting Items")
+    SMODS.NO_LOG = true
     SMODS.injectItems()
     SMODS.booted = true
 end

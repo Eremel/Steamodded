@@ -133,7 +133,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         local o = nil
         for i, key in ipairs(self.obj_buffer) do
             o = self.obj_table[key]
-            if not o.no_log then boot_print_stage(('Injecting %s: %s'):format(o.set, o.key)) end
+            if not SMODS.NO_LOG then boot_print_stage(('Injecting %s: %s'):format(o.set, o.key)) end
             o.atlas = o.atlas or o.set
 
             if o._discovered_unlocked_overwritten then
@@ -150,10 +150,10 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             -- Setup Localize text
             o:process_loc_text()
 
-            sendInfoMessage(
+            if not SMODS.NO_LOG then sendInfoMessage(
                 ('Injected game object %s of type %s')
                 :format(o.key, o.set), o.set or 'GameObject'
-            )
+            ) end
         end
     end
 
@@ -548,13 +548,16 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         get_obj = function(self, key) return G.P_STAKES[key] end
     }
 
-    function SMODS.setup_stake(i)
+    function SMODS.setup_stake(i, hash)
+        hash = hash or {}
+        if hash[i] then return end
+        hash[i] = true
         if G.P_CENTER_POOLS['Stake'][i].modifiers then
             G.P_CENTER_POOLS['Stake'][i].modifiers()
         end
         if G.P_CENTER_POOLS['Stake'][i].applied_stakes then
             for _, v in pairs(G.P_CENTER_POOLS['Stake'][i].applied_stakes) do
-                SMODS.setup_stake(G.P_STAKES["stake_" .. v].stake_level)
+                SMODS.setup_stake(G.P_STAKES["stake_" .. v].stake_level, hash)
             end
         end
     end
