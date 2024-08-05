@@ -302,11 +302,6 @@ function SMODS.injectItems()
         end
     end
     SMODS.injectObjects(SMODS.GameObject)
-    for k,v in pairs(SMODS.AltTextures) do
-        boot_print_stage('Setting texture - '..k)
-        G.SETTINGS.selected_texture[k] = G.SETTINGS.selected_texture[k] or "Default"
-        G.FUNCS.update_atlases(k)
-    end
     if SMODS.dump_loc then
         boot_print_stage('Dumping Localization')
         SMODS.create_loc_dump()
@@ -345,7 +340,6 @@ function initSteamodded()
     loadMods(SMODS.MODS_DIR)
     initializeModUIFunctions()
     boot_print_stage("Injecting Items")
-    SMODS.NO_LOG = true
     SMODS.injectItems()
     SMODS.booted = true
 end

@@ -152,7 +152,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             sendTraceMessage(
                 ('Injected game object %s of type %s')
                 :format(o.key, o.set), o.set or 'GameObject'
-            ) end
+            )
         end
     end
 
@@ -863,8 +863,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             SMODS.process_loc_text(G.localization.descriptions.Other, 'undiscovered_' .. string.lower(self.key),
                 self.loc_txt, 'undiscovered')
         end,
-        -- TODO: Move to external mod
-        generate_colours = function(self, base_colours)
+         -- TODO: Move to external mod
+         generate_colours = function(self, base_colours)
             if not self.colour_shifter then return (type(base_colours) == 'table' and HEX(base_colours[1]) or HEX(base_colours)) end
             local colours = {}
             for i=1, #self.colour_shifter do
@@ -896,8 +896,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             SMODS.remove_pool(G.P_CENTER_POOLS['Tarot_Planet'], center.key)
         end,
         loc_txt = {},
-        --TODO: Move to external mod
-        colour_shifter = {{{0, -0.06, -0.40, 0}, {0, 0.30, -0.32, 0}, {0, 0.20, -0.15, 0}, {0, 0, 0, 0}, {0, -0.50, 0.20, 0}}}
+         --TODO: Move to external mod
+         colour_shifter = {{{0, -0.06, -0.40, 0}, {0, 0.30, -0.32, 0}, {0, 0.20, -0.15, 0}, {0, 0, 0, 0}, {0, -0.50, 0.20, 0}}}
     }
     SMODS.ConsumableType {
         key = 'Planet',
@@ -2448,6 +2448,52 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     })
 
     -------------------------------------------------------------------------------------------------
+    ------- API CODE GameObject.Keybind
+    -------------------------------------------------------------------------------------------------
+    SMODS.Keybinds = {}
+    SMODS.Keybind = SMODS.GameObject:extend {
+        obj_table = SMODS.Keybinds,
+        obj_buffer = {},
+
+        -- key_pressed = 'x',
+        held_keys = {}, -- other key(s) that need to be held
+        -- action = function(controller)
+        --     print("Keybind pressed")
+        -- end,
+
+        -- TODO : option to specify if keybind activates on hold, press or release
+
+        required_params = {
+            'key',
+            'key_pressed',
+            'action',
+        },
+        set = 'Keybind',
+        class_prefix = 'keybind',
+
+        inject = function(_) end
+    }
+
+    
+    -------------------------------------------------------------------------------------------------
+    ----- INTERNAL API CODE GameObject._Loc_Post
+    -------------------------------------------------------------------------------------------------
+
+    SMODS._Loc_Post = SMODS.GameObject:extend {
+        obj_table = {},
+        obj_buffer = {},
+        set = '[INTERNAL]',
+        silent = true,
+        register = function() error('INTERNAL CLASS, DO NOT CALL') end,
+        inject_class = function()
+            for _, mod in ipairs(SMODS.mod_list) do
+                SMODS.handle_loc_file(mod.path)
+            end
+        end
+    }
+
+    
+    -------------------------------------------------------------------------------------------------
     ----- API CODE GameObject.AltTexture
     -------------------------------------------------------------------------------------------------
 
@@ -2593,48 +2639,4 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         inject = create_base_game_atlas
     })
 
-    -------------------------------------------------------------------------------------------------
-    ------- API CODE GameObject.Keybind
-    -------------------------------------------------------------------------------------------------
-    SMODS.Keybinds = {}
-    SMODS.Keybind = SMODS.GameObject:extend {
-        obj_table = SMODS.Keybinds,
-        obj_buffer = {},
-
-        -- key_pressed = 'x',
-        held_keys = {}, -- other key(s) that need to be held
-        -- action = function(controller)
-        --     print("Keybind pressed")
-        -- end,
-
-        -- TODO : option to specify if keybind activates on hold, press or release
-
-        required_params = {
-            'key',
-            'key_pressed',
-            'action',
-        },
-        set = 'Keybind',
-        class_prefix = 'keybind',
-
-        inject = function(_) end
-    }
-
-    
-    -------------------------------------------------------------------------------------------------
-    ----- INTERNAL API CODE GameObject._Loc_Post
-    -------------------------------------------------------------------------------------------------
-
-    SMODS._Loc_Post = SMODS.GameObject:extend {
-        obj_table = {},
-        obj_buffer = {},
-        set = '[INTERNAL]',
-        silent = true,
-        register = function() error('INTERNAL CLASS, DO NOT CALL') end,
-        inject_class = function()
-            for _, mod in ipairs(SMODS.mod_list) do
-                SMODS.handle_loc_file(mod.path)
-            end
-        end
-    }
 end
