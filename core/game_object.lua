@@ -126,10 +126,22 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
     function SMODS.GameObject:process_loc_text()
         SMODS.process_loc_text(G.localization.descriptions[self.set], self.key, self.loc_txt)
     end
+    
+    --- Starting from this class, recursively searches for 
+    --- functions with the given key on all subordinate classes
+    --- and run all found functions with the given arguments
+    function SMODS.GameObject:send_to_subclasses(func, ...)
+        if self[func] and type(self[func]) == 'function' then self[func](self, ...) end
+        for _, cls in ipairs(self.subclasses) do
+            cls:send_to_subclasses(func, ...)
+        end
+    end
+
 
     -- Inject all direct instances `o` of the class by calling `o:inject()`.
     -- Also inject anything necessary for the class itself.
     function SMODS.GameObject:inject_class()
+        self:send_to_subclasses('pre_inject_class')
         local o = nil
         for i, key in ipairs(self.obj_buffer) do
             o = self.obj_table[key]
@@ -154,6 +166,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 :format(o.key, o.set), o.set or 'GameObject'
             )
         end
+        self:send_to_subclasses('post_inject_class')
     end
 
     --- Takes control of vanilla objects. Child class must implement get_obj for this to function.
@@ -254,8 +267,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             end
             G.LANGUAGES[self.key] = self
         end,
-        inject_class = function(self)
-            SMODS.Language.super.inject_class(self)
+        post_inject_class = function(self)
             G:set_language()
         end
     }
@@ -270,7 +282,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         silent = true,
         set = '[INTERNAL]',
         register = function() error('INTERNAL CLASS, DO NOT CALL') end,
-        inject_class = function()
+        pre_inject_class = function()
             SMODS.handle_loc_file(SMODS.path)
             if SMODS.dump_loc then SMODS.dump_loc.pre_inject = copy_table(G.localization) end
             for _, mod in ipairs(SMODS.mod_list) do
@@ -328,9 +340,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             G[self.atlas_table][self.key_noloc or self.key] = self
         end,
         process_loc_text = function() end,
-        inject_class = function(self) 
+        pre_inject_class = function(self) 
             G:set_render_settings() -- restore originals first in case a texture pack was disabled
-            SMODS.Atlas.super.inject_class(self)
         end
     }
 
@@ -339,6 +350,12 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         path = 'mod_tags.png',
         px = 34,
         py = 34,
+    }
+    SMODS.Atlas {
+        key = 'achievements',
+        path = 'default_achievements.png',
+        px = 66,
+        py = 66,
     }
 
     -------------------------------------------------------------------------------------------------
@@ -486,10 +503,9 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             'pos',
             'applied_stakes'
         },
-        inject_class = function(self)
+        pre_inject_class = function(self)
             G.P_CENTER_POOLS[self.set] = {}
             G.P_STAKES = {}
-            SMODS.Stake.super.inject_class(self)
         end,
         inject = function(self)
             if not self.injected then
@@ -518,6 +534,8 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             else
                 G.P_STAKES[self.key] = self
             end
+            self.injected = true
+            -- should only need to do this once per injection routine
             G.P_CENTER_POOLS[self.set] = {}
             for _, v in pairs(G.P_STAKES) do
                 SMODS.insert_pool(G.P_CENTER_POOLS[self.set], v)
@@ -527,7 +545,6 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
             for i = 1, #G.P_CENTER_POOLS[self.set] do
                 G.C.STAKES[i] = G.P_CENTER_POOLS[self.set][i].colour or G.C.WHITE
             end
-            self.injected = true
         end,
         process_loc_text = function(self)
             -- empty loc_txt indicates there are existing values that shouldn't be changed or it isn't necessary
@@ -1302,7 +1319,9 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         obj_buffer = {},
         obj_table = SMODS.UndiscoveredSprites,
         set = 'Undiscovered Sprite',
-        inject_class = function() end,
+        -- this is more consistent and allows for extension
+        process_loc_text = function() end,
+        inject = function() end,
         prefix_config = { key = false },
         required_params = {
             'key',
@@ -1758,7 +1777,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         use = function(self, card, area, copier)
             local used_tarot = copier or card
             juice_flip(used_tarot)
-            local _suit = pseudorandom_element(SMODS.Suit.obj_buffer, pseudoseed('sigil'))
+            local _suit = pseudorandom_element(SMODS.Suits, pseudoseed('sigil'))
             for i = 1, #G.hand.cards do
                 G.E_MANAGER:add_event(Event({
                     func = function()
@@ -1785,12 +1804,12 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         use = function(self, card, area, copier)
             local used_tarot = copier or card
             juice_flip(used_tarot)
-            local _rank = pseudorandom_element(SMODS.Rank.obj_buffer, pseudoseed('ouija'))
+            local _rank = pseudorandom_element(SMODS.Ranks, pseudoseed('ouija'))
             for i = 1, #G.hand.cards do
                 G.E_MANAGER:add_event(Event({
                     func = function()
                         local _card = G.hand.cards[i]
-                        assert(SMODS.change_base(_card, nil, _rank))
+                        assert(SMODS.change_base(_card, nil, _rank.key))
                         return true
                     end
                 }))
@@ -2474,7 +2493,40 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         inject = function(_) end
     }
 
-    
+    -------------------------------------------------------------------------------------------------
+    ------- API CODE GameObject.Achievements
+    -------------------------------------------------------------------------------------------------
+
+    SMODS.Achievements = {}
+    SMODS.Achievement = SMODS.GameObject:extend{
+        obj_table = SMODS.Achievements,
+        obj_buffer = {},
+        required_params = {
+            'key',
+            'unlock_condition',
+        },
+        set = 'Achievement',
+        class_prefix = "ach",
+        atlas = "achievements",
+        pos = {x=1, y=0},
+        hidden_pos = {x=0, y=0},
+        bypass_all_unlocked = false,
+        hidden_name = true,
+        steamid = "STEAMODDED",
+        pre_inject_class = fetch_achievements,
+        inject = function(self)
+            G.ACHIEVEMENTS[self.key] = self
+            if self.reset_on_startup then
+                if G.SETTINGS.ACHIEVEMENTS_EARNED[self.key] then G.SETTINGS.ACHIEVEMENTS_EARNED[self.key] = nil end
+                if G.ACHIEVEMENTS[self.key].earned then G.ACHIEVEMENTS[self.key].earned = nil end
+            end
+        end,
+        process_loc_text = function(self)
+            SMODS.process_loc_text(G.localization.misc.achievement_names, self.key, self.loc_txt, "name")
+            SMODS.process_loc_text(G.localization.misc.achievement_descriptions, self.key, self.loc_txt, "description")
+        end,
+    }
+
     -------------------------------------------------------------------------------------------------
     ----- INTERNAL API CODE GameObject._Loc_Post
     -------------------------------------------------------------------------------------------------
@@ -2485,7 +2537,7 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         set = '[INTERNAL]',
         silent = true,
         register = function() error('INTERNAL CLASS, DO NOT CALL') end,
-        inject_class = function()
+        pre_inject_class = function()
             for _, mod in ipairs(SMODS.mod_list) do
                 SMODS.handle_loc_file(mod.path)
             end
