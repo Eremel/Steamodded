@@ -494,12 +494,12 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
         inject = function(self)
             if not self.injected then
                 -- Inject stake in the correct spot
-                local count = #G.P_CENTER_POOLS[self.set] + 1
+                self.count = #G.P_CENTER_POOLS[self.set] + 1
+                self.order = self.count
                 if self.above_stake then
-                    count = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
+                    self.order = G.P_STAKES[self.class_prefix .. "_" .. self.above_stake].stake_level + 1
                 end
-                self.order = count
-                self.stake_level = count
+                self.stake_level = self.order
                 for _, v in pairs(G.P_STAKES) do
                     if v.stake_level >= self.stake_level then
                         v.stake_level = v.stake_level + 1
@@ -511,9 +511,9 @@ Set `prefix_config.key = false` on your object instead.]]):format(obj.key), obj.
                 if self.sticker_pos ~= nil then
                     G.shared_stickers[self.key:sub(7)] = Sprite(0, 0, G.CARD_W, G.CARD_H,
                         G.ASSET_ATLAS[self.sticker_atlas] or G.ASSET_ATLAS["stickers"], self.sticker_pos)
-                    G.sticker_map[self.stake_level] = self.key:sub(7)
+                    G.sticker_map[self.key] = self.key:sub(7)
                 else
-                    G.sticker_map[self.stake_level] = nil
+                    G.sticker_map[self.key] = nil
                 end
             else
                 G.P_STAKES[self.key] = self
